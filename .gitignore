@@ -3,3 +3,6 @@ node_modules/
 .env
 .env.local
 .dev.vars
+
+# git bundles used to hand over commits
+*.bundle
