@@ -1,0 +1,38 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "hearfinch-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "observability": { "enabled": true },
+
+  "vars": {
+    // Websites allowed to call the API from a browser. Replace YOUR-GITHUB-USERNAME.
+    "ALLOWED_ORIGINS": "https://YOUR-GITHUB-USERNAME.github.io,http://localhost:5173",
+    "ACRCLOUD_HOST": "identify-us-west-2.acrcloud.com"
+  },
+
+  // The dialogue index for movies and TV.
+  // Create it once with:  npx wrangler d1 create hearfinch-dialogue
+  // then paste the database_id it prints below.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "hearfinch-dialogue",
+      "database_id": "PASTE-YOUR-D1-DATABASE-ID-HERE",
+      "migrations_dir": "migrations"
+    }
+  ],
+
+  // Per-visitor limit on /identify: 6 clips per minute per Cloudflare location.
+  "ratelimits": [
+    {
+      "name": "IDENTIFY_LIMITER",
+      "namespace_id": "1001",
+      "simple": { "limit": 6, "period": 60 }
+    }
+  ]
+
+  // Secrets are not stored here. Set each one with `npx wrangler secret put NAME`:
+  //   ACRCLOUD_ACCESS_KEY, ACRCLOUD_ACCESS_SECRET, OPENAI_API_KEY, TMDB_API_KEY,
+  //   ANTHROPIC_API_KEY, ANTHROPIC_MODEL, TURNSTILE_SECRET (optional)
+}

@@ -1,0 +1,28 @@
+{
+  "name": "hearfinch-worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p scripts",
+    "index:opensubtitles": "tsx --env-file=.dev.vars scripts/index-opensubtitles.ts",
+    "index:opus": "tsx --env-file=.dev.vars scripts/index-opus.ts",
+    "search": "tsx scripts/search.ts",
+    "d1:push": "tsx scripts/d1-push.ts"
+  },
+  "dependencies": {
+    "hono": "^4.13.14"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261029.1",
+    "@types/node": "^26.6.6",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "wrangler": "^4.155.0"
+  },
+  "engines": {
+    "node": ">=22.13"
+  }
+}
