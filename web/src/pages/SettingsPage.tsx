@@ -28,6 +28,13 @@ export function SettingsPage() {
           </div>
           <p className="muted small">Longer clips work better for quiet or talk-heavy audio, like a scene from a show.</p>
         </fieldset>
+        <label className="switch-row">
+          <span>
+            <span className="label">Show what Hearfinch heard</span>
+            <span className="muted small">For testing: after each search, show the words it heard and the closest titles.</span>
+          </span>
+          <input type="checkbox" role="switch" checked={s.showDetails} onChange={(e) => updateSettings({ showDetails: e.target.checked })} />
+        </label>
       </section>
 
       <section className="group" aria-labelledby="results-h">

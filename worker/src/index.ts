@@ -22,7 +22,23 @@ app.use('*', async (c, next) => {
 
 app.get('/', (c) => c.text('Hearfinch API. POST /identify with an audio clip.'));
 
-app.get('/health', (c) => c.json({ ok: true, providers: providerStatus(c.env), dialogueIndex: Boolean(c.env.DB) }));
+app.get('/health', async (c) => {
+  let dialogueIndex: { movies: number; shows: number } | false = false;
+  if (c.env.DB) {
+    try {
+      const { results } = await c.env.DB.prepare(
+        "SELECT media_type AS type, COUNT(*) AS n FROM titles WHERE sources > 0 GROUP BY media_type",
+      ).all<{ type: string; n: number }>();
+      dialogueIndex = {
+        movies: results.find((r) => r.type === 'movie')?.n ?? 0,
+        shows: results.find((r) => r.type === 'tv')?.n ?? 0,
+      };
+    } catch {
+      dialogueIndex = { movies: 0, shows: 0 };
+    }
+  }
+  return c.json({ ok: true, providers: providerStatus(c.env), dialogueIndex });
+});
 
 app.post('/identify', async (c) => {
   const ip = c.req.header('CF-Connecting-IP') ?? 'unknown';
@@ -47,10 +63,13 @@ app.post('/identify', async (c) => {
   if (!(file instanceof File)) return c.json({ error: 'Send the clip as multipart field "audio".' }, 400);
   if (file.size > MAX_BYTES) return c.json({ error: 'Clip is too long.' }, 413);
   const region = String(form.get('region') ?? 'CA').toUpperCase().slice(0, 2);
+  // "Show what Hearfinch heard" in the website's Settings: returns the transcript
+  // and the closest titles to the person who sent the clip. Nothing is stored.
+  const debug = form.get('debug') === '1' ? { steps: [] } : undefined;
 
   // The clip only lives in memory for the length of this request.
   const audio = new Uint8Array(await file.arrayBuffer());
-  const response = await runPipeline({ audio, mimeType: file.type || 'audio/webm', region, env: c.env });
+  const response = await runPipeline({ audio, mimeType: file.type || 'audio/webm', region, env: c.env, debug });
   return c.json(response, 200, { 'Cache-Control': 'no-store' });
 });
 

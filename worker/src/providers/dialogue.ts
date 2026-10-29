@@ -13,14 +13,16 @@ export const dialogue: Provider = {
   name: 'dialogue',
   enabled: (env: Env) => Boolean(env.DB && env.TMDB_API_KEY),
 
-  async identify({ transcript, region, env }: ClipContext): Promise<IdentifyResult | null> {
+  async identify({ transcript, region, env, debug }: ClipContext): Promise<IdentifyResult | null> {
     // A handful of words is too little to tell films apart.
     if (!transcript || transcript.split(/\s+/).length < 6) return null;
     const keywords = keywordsFor(transcript);
     if (!keywords) return null;
 
     const { results } = await env.DB!.prepare(CANDIDATE_SQL).bind(ftsQuery(keywords)).all<ChunkRow>();
-    const [top, second] = rankTitles(transcript, keywords, results);
+    const ranked = rankTitles(transcript, keywords, results);
+    if (debug) debug.candidates = ranked.map((h) => ({ title: h.title, type: h.mediaType, score: Math.round(h.score * 100) / 100 }));
+    const [top, second] = ranked;
     if (!top) return null;
     // If two titles are nearly tied, we don't really know which it is.
     const confidence = second && top.score - second.score < 0.08 ? top.score * 0.85 : top.score;

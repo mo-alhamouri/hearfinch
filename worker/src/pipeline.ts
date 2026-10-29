@@ -18,18 +18,40 @@ const MATCHERS: Provider[] = [fingerprint, dialogue, podcasts, aiGuess];
 const MIN_CONFIDENCE = 0.55;
 
 export async function runPipeline(ctx: ClipContext): Promise<IdentifyResponse> {
+  const note = (step: string, outcome: string) => ctx.debug?.steps.push({ step, outcome });
+
   for (const provider of MATCHERS) {
-    if (!provider.enabled(ctx.env)) continue;
+    if (!provider.enabled(ctx.env)) {
+      note(provider.name, 'off (keys not set)');
+      continue;
+    }
 
     // Steps after fingerprinting need the transcript; make it once, lazily.
     if (provider !== fingerprint && ctx.transcript === undefined && transcribe.enabled(ctx.env)) {
-      ctx.transcript = (await safe(() => transcribe.run(ctx))) ?? '';
+      const t = await safe(() => transcribe.run(ctx));
+      ctx.transcript = t.ok ? t.value : '';
+      note('transcribe', t.ok ? `${ctx.transcript.split(/\s+/).filter(Boolean).length} words` : `failed: ${t.error}`);
+      if (ctx.debug) ctx.debug.transcript = ctx.transcript;
     }
 
-    const result = await safe(() => provider.identify(ctx));
-    if (result && result.confidence >= MIN_CONFIDENCE) return { status: 'match', result };
+    const r = await safe(() => provider.identify(ctx));
+    if (!r.ok) {
+      note(provider.name, `failed: ${r.error}`);
+      continue;
+    }
+    const result = r.value;
+    if (!result) {
+      note(provider.name, 'no match');
+      continue;
+    }
+    if (result.confidence < MIN_CONFIDENCE) {
+      note(provider.name, `"${result.title}" at ${Math.round(result.confidence * 100)}% (below ${MIN_CONFIDENCE * 100}%)`);
+      continue;
+    }
+    note(provider.name, `matched "${result.title}" at ${Math.round(result.confidence * 100)}%`);
+    return { status: 'match', result, debug: ctx.debug };
   }
-  return { status: 'no_match' };
+  return { status: 'no_match', debug: ctx.debug };
 }
 
 export function providerStatus(env: Env) {
@@ -39,11 +61,11 @@ export function providerStatus(env: Env) {
   };
 }
 
-async function safe<T>(fn: () => Promise<T>): Promise<T | null> {
+async function safe<T>(fn: () => Promise<T>): Promise<{ ok: true; value: T } | { ok: false; error: string }> {
   try {
-    return await fn();
+    return { ok: true, value: await fn() };
   } catch (err) {
     console.error(err);
-    return null;
+    return { ok: false, error: err instanceof Error ? err.message.slice(0, 200) : String(err) };
   }
 }

@@ -8,14 +8,14 @@ import { recordClip, RecorderError, type RecorderErrorKind } from '../lib/record
 import { href } from '../lib/router';
 import { formatWhen } from '../lib/share';
 import { addToHistory, useHistory, useSettings } from '../lib/storage';
-import type { IdentifyResult } from '../types';
+import type { DebugInfo, IdentifyResult } from '../types';
 
 type Phase =
   | { kind: 'idle' }
   | { kind: 'recording' }
   | { kind: 'identifying'; step: 1 | 2 }
-  | { kind: 'result'; result: IdentifyResult }
-  | { kind: 'nomatch' }
+  | { kind: 'result'; result: IdentifyResult; debug?: DebugInfo }
+  | { kind: 'nomatch'; debug?: DebugInfo }
   | { kind: 'mic-error'; reason: RecorderErrorKind }
   | { kind: 'error'; message: string };
 
@@ -48,7 +48,7 @@ export function ListenPage() {
     abortRef.current?.abort();
     const abort = new AbortController();
     abortRef.current = abort;
-    const { clipLength, region } = settings;
+    const { clipLength, region, showDetails } = settings;
 
     try {
       setPhase({ kind: 'recording' });
@@ -63,13 +63,13 @@ export function ListenPage() {
 
       setPhase({ kind: 'identifying', step: 1 });
       const stepTimer = setTimeout(() => setPhase((p) => (p.kind === 'identifying' ? { kind: 'identifying', step: 2 } : p)), 900);
-      const res = await identify(clip, region, abort.signal).finally(() => clearTimeout(stepTimer));
+      const res = await identify(clip, region, abort.signal, showDetails).finally(() => clearTimeout(stepTimer));
 
       if (res.status === 'match') {
         addToHistory(res.result);
-        setPhase({ kind: 'result', result: res.result });
+        setPhase({ kind: 'result', result: res.result, debug: res.debug });
       } else {
-        setPhase({ kind: 'nomatch' });
+        setPhase({ kind: 'nomatch', debug: res.debug });
       }
     } catch (e) {
       if (e instanceof DOMException && e.name === 'AbortError') return setPhase({ kind: 'idle' });
@@ -158,6 +158,7 @@ export function ListenPage() {
 
       <section className="side-panel" ref={panelRef} tabIndex={-1} aria-label="Result">
         {phase.kind === 'result' && <ResultCard result={phase.result} onListenAgain={listen} />}
+        {(phase.kind === 'result' || phase.kind === 'nomatch') && phase.debug && <HeardDetails debug={phase.debug} />}
 
         {phase.kind === 'nomatch' && (
           <div className="message">
@@ -236,5 +237,35 @@ export function ListenPage() {
         )}
       </section>
     </div>
+  );
+}
+
+/** Testing aid (Settings → Show what Hearfinch heard). */
+function HeardDetails({ debug }: { debug: DebugInfo }) {
+  return (
+    <section className="card outlined details-panel" aria-label="What Hearfinch heard">
+      <p className="eyebrow">What Hearfinch heard</p>
+      <p>{debug.transcript ? <em>“{debug.transcript}”</em> : <span className="muted">No words were picked up.</span>}</p>
+      {debug.candidates && debug.candidates.length > 0 && (
+        <>
+          <p className="eyebrow">Closest titles</p>
+          <ul className="plain-list">
+            {debug.candidates.map((c) => (
+              <li key={c.title}>
+                {c.title} <span className="muted small">({c.type === 'tv' ? 'show' : 'movie'}) · {Math.round(c.score * 100)}%</span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      <p className="eyebrow">Steps</p>
+      <ul className="plain-list small">
+        {debug.steps.map((s, i) => (
+          <li key={i}>
+            <strong>{s.step}</strong>: <span className="muted">{s.outcome}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

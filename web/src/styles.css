@@ -989,3 +989,14 @@ main:focus-visible,
 .side-panel:focus-visible {
   outline: none;
 }
+
+.details-panel {
+  margin-top: 20px;
+}
+.plain-list {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}

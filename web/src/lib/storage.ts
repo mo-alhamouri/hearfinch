@@ -40,7 +40,7 @@ export const REGIONS = [
   { code: 'NZ', name: 'New Zealand' },
 ] as const;
 
-let settings: Settings = { clipLength: 10, region: defaultRegion(), saveHistory: true, ...read<Partial<Settings>>(KEYS.settings, {}) };
+let settings: Settings = { clipLength: 10, region: defaultRegion(), saveHistory: true, showDetails: false, ...read<Partial<Settings>>(KEYS.settings, {}) };
 let history: HistoryEntry[] = read<HistoryEntry[]>(KEYS.history, []);
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());

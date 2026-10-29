@@ -18,7 +18,14 @@ export interface IdentifyResult {
   note?: string;
 }
 
-export type IdentifyResponse = { status: 'match'; result: IdentifyResult } | { status: 'no_match' };
+/** Extra detail returned when the website asks for it (Settings → Show what Hearfinch heard). */
+export interface DebugInfo {
+  transcript?: string;
+  steps: { step: string; outcome: string }[];
+  candidates?: { title: string; type: string; score: number }[];
+}
+
+export type IdentifyResponse = ({ status: 'match'; result: IdentifyResult } | { status: 'no_match' }) & { debug?: DebugInfo };
 
 /** Bindings and secrets, configured in wrangler.jsonc and with `wrangler secret put`. */
 export interface Env {
@@ -46,6 +53,8 @@ export interface ClipContext {
   env: Env;
   /** Filled in once speech-to-text has run, so later steps can reuse it. */
   transcript?: string;
+  /** Present when the caller asked for debug detail. */
+  debug?: DebugInfo;
 }
 
 /** One step in the identification pipeline. Returns null to pass to the next step. */

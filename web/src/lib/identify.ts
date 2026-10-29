@@ -13,7 +13,7 @@ export class IdentifyError extends Error {
 }
 
 /** Sends a clip to the Hearfinch API (or the built-in samples in demo mode). */
-export async function identify(clip: Blob, region: string, signal: AbortSignal): Promise<IdentifyResponse> {
+export async function identify(clip: Blob, region: string, signal: AbortSignal, debug = false): Promise<IdentifyResponse> {
   if (DEMO) return mockIdentify(signal);
 
   const token = await getTurnstileToken().catch(() => {
@@ -24,6 +24,7 @@ export async function identify(clip: Blob, region: string, signal: AbortSignal):
   const body = new FormData();
   body.append('audio', clip, `clip.${ext}`);
   body.append('region', region);
+  if (debug) body.append('debug', '1');
 
   let res: Response;
   try {
