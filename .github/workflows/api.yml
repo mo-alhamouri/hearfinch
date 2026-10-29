@@ -1,0 +1,53 @@
+# Type-checks worker/ and deploys it to Cloudflare Workers on every push to main.
+# One-time setup, in the repo's Settings → Secrets and variables → Actions → Secrets:
+#   CLOUDFLARE_API_TOKEN   a token with the "Edit Cloudflare Workers" template plus D1 edit permission
+#   CLOUDFLARE_ACCOUNT_ID  from the Cloudflare dashboard sidebar
+# Then add the repository variable DEPLOY_API = true (Settings → Secrets and variables → Actions → Variables).
+# Until then this workflow only type-checks, so pushes don't fail before Cloudflare is set up.
+# The Worker's own secrets (API keys) are set once with `npx wrangler secret put` — see worker/README.md.
+name: API
+
+on:
+  push:
+    branches: [main]
+    paths: ['worker/**', '.github/workflows/api.yml']
+  pull_request:
+    paths: ['worker/**']
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: worker
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: worker/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+
+  deploy:
+    needs: check
+    if: github.event_name != 'pull_request' && vars.DEPLOY_API == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: worker/package-lock.json
+      - run: npm ci
+        working-directory: worker
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: worker
+          preCommands: npx wrangler d1 migrations apply hearfinch-dialogue --remote
+          command: deploy

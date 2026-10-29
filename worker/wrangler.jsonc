@@ -7,7 +7,7 @@
 
   "vars": {
     // Websites allowed to call the API from a browser. Replace YOUR-GITHUB-USERNAME.
-    "ALLOWED_ORIGINS": "https://YOUR-GITHUB-USERNAME.github.io,http://localhost:5173",
+    "ALLOWED_ORIGINS": "https://mo-alhamouri.github.io,http://localhost:5173",
     "ACRCLOUD_HOST": "identify-us-west-2.acrcloud.com"
   },
 

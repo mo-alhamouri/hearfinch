@@ -1,0 +1,26 @@
+# Copy to .dev.vars for `npm run dev` (local Worker). Never commit .dev.vars.
+# In production set each of these with:  npx wrangler secret put NAME
+# Every one is optional: the pipeline skips any step whose keys are missing.
+
+# Songs + commercials (https://www.acrcloud.com)
+ACRCLOUD_ACCESS_KEY=
+ACRCLOUD_ACCESS_SECRET=
+
+# Speech-to-text (OpenAI)
+OPENAI_API_KEY=
+
+# Movie / TV details and where-to-watch (TMDB read access token)
+TMDB_API_KEY=
+
+# "Best guess" fallback (Claude). Model id from https://docs.claude.com/en/docs/about-claude/models
+ANTHROPIC_API_KEY=
+ANTHROPIC_MODEL=
+
+# Bot protection (Cloudflare Turnstile). Leave empty to switch it off.
+TURNSTILE_SECRET=
+
+# --- Only used by the local indexing scripts (npm run index:*) ---
+# Subtitle source (https://www.opensubtitles.com/consumers)
+OPENSUBTITLES_API_KEY=
+OPENSUBTITLES_USERNAME=
+OPENSUBTITLES_PASSWORD=

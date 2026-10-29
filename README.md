@@ -13,18 +13,24 @@ hearfinch/
 
 ## Put it online
 
-1. **Move the workflows into place:** `mkdir -p .github/workflows && mv github-workflows/*.yml .github/workflows/`. They're kept outside `.github` only because of how they were delivered.
-2. **Create the GitHub repo** and push this folder to `main`.
-3. **Turn on Pages:** Settings → Pages → Source: **GitHub Actions**. The website deploys in demo mode, with sample results, at `https://<username>.github.io/<repo>/`.
-4. **Set up the API** once by following `worker/README.md`. That covers a free Cloudflare account, the D1 database and your API keys.
-5. **Connect the two:**
+1. **Turn on Pages:** Settings → Pages → Source: **GitHub Actions**. The website deploys in demo mode, with sample results, at https://mo-alhamouri.github.io/hearfinch/.
+2. **Set up the API** once by following `worker/README.md`. That covers a free Cloudflare account, the D1 database and your API keys.
+3. **Connect the two:**
    - In GitHub, under **Settings → Secrets and variables → Actions**:
-     - add the secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, so pushes deploy the API
+     - add the secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, and the variable `DEPLOY_API` set to `true`, so pushes deploy the API
      - add the variable `API_URL`, set to your Worker URL, so the website stops using demo mode
-   - In `worker/wrangler.jsonc`, put your Pages address in `ALLOWED_ORIGINS`.
-6. **Optional: bot check.** Create a Cloudflare Turnstile widget, then:
+4. **Optional: bot check.** Create a Cloudflare Turnstile widget, then:
    - set the site key as the `TURNSTILE_SITE_KEY` variable in GitHub
    - set the secret key as the Worker secret `TURNSTILE_SECRET`
+
+## Releases
+
+Each release has its notes in `releases/<version>.md`. To publish one:
+
+1. Write `releases/vX.Y.Z.md` and commit it.
+2. Tag the commit `vX.Y.Z` and push the tag. The **Release** workflow creates the GitHub release from that file. Without a notes file, it writes the notes from the commit messages.
+
+You can also run **Actions → Release → Run workflow** and type the version.
 
 ## Work on it locally
 
