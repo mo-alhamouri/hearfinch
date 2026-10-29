@@ -10,7 +10,10 @@
     "index:opensubtitles": "tsx --env-file=.dev.vars scripts/index-opensubtitles.ts",
     "index:opus": "tsx --env-file=.dev.vars scripts/index-opus.ts",
     "search": "tsx scripts/search.ts",
-    "d1:push": "tsx scripts/d1-push.ts"
+    "d1:push": "tsx scripts/d1-push.ts",
+    "d1:pull": "tsx scripts/d1-pull.ts",
+    "ci:prepare-d1": "tsx scripts/ci-prepare-d1.ts",
+    "ci:index:opensubtitles": "tsx scripts/index-opensubtitles.ts"
   },
   "dependencies": {
     "hono": "^4.13.14"

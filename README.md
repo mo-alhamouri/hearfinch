@@ -13,15 +13,14 @@ hearfinch/
 
 ## Put it online
 
-1. **Turn on Pages:** Settings → Pages → Source: **GitHub Actions**. The website deploys in demo mode, with sample results, at https://mo-alhamouri.github.io/hearfinch/.
-2. **Set up the API** once by following `worker/README.md`. That covers a free Cloudflare account, the D1 database and your API keys.
-3. **Connect the two:**
-   - In GitHub, under **Settings → Secrets and variables → Actions**:
-     - add the secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, and the variable `DEPLOY_API` set to `true`, so pushes deploy the API
-     - add the variable `API_URL`, set to your Worker URL, so the website stops using demo mode
-4. **Optional: bot check.** Create a Cloudflare Turnstile widget, then:
-   - set the site key as the `TURNSTILE_SITE_KEY` variable in GitHub
-   - set the secret key as the Worker secret `TURNSTILE_SECRET`
+The website is live at https://mo-alhamouri.github.io/hearfinch/ in demo mode. To make it identify real audio, follow **First-time setup** in `worker/README.md`:
+
+1. **Add GitHub secrets:** your Cloudflare token and account ID, plus API keys (TMDB and OpenAI first).
+2. **Deploy the API:** run **Actions → API**.
+3. **Connect the website:** set the `API_URL` variable and run **Actions → Website**.
+4. **Fill the movie and TV index:** run **Actions → Dialogue index**.
+
+Everything happens in GitHub and Cloudflare's dashboards, with nothing to install.
 
 ## Releases
 

@@ -7,7 +7,14 @@
 const BASE = 'https://api.themoviedb.org/3';
 
 async function get<T>(apiKey: string, path: string): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, { headers: { Authorization: `Bearer ${apiKey}`, Accept: 'application/json' } });
+  // Accepts either TMDB credential: the long "API Read Access Token" (sent as a
+  // Bearer header) or the short 32-character "API Key" (sent as ?api_key=).
+  const key = apiKey.trim();
+  const isV3Key = /^[0-9a-f]{32}$/i.test(key);
+  const url = isV3Key ? `${BASE}${path}${path.includes('?') ? '&' : '?'}api_key=${key}` : `${BASE}${path}`;
+  const headers: Record<string, string> = { Accept: 'application/json' };
+  if (!isV3Key) headers.Authorization = `Bearer ${key}`;
+  const res = await fetch(url, { headers });
   if (!res.ok) throw new Error(`TMDB ${path} failed: ${res.status}`);
   return (await res.json()) as T;
 }
