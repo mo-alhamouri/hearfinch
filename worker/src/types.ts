@@ -30,6 +30,8 @@ export type IdentifyResponse = ({ status: 'match'; result: IdentifyResult } | { 
 /** Bindings and secrets, configured in wrangler.jsonc and with `wrangler secret put`. */
 export interface Env {
   DB?: D1Database;
+  /** Workers AI, used for free speech-to-text. */
+  AI?: Ai;
   IDENTIFY_LIMITER?: RateLimit;
   ALLOWED_ORIGINS?: string;
   ACRCLOUD_HOST?: string;

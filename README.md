@@ -15,7 +15,7 @@ hearfinch/
 
 The website is live at https://mo-alhamouri.github.io/hearfinch/ in demo mode. To make it identify real audio, follow **First-time setup** in `worker/README.md`:
 
-1. **Add GitHub secrets:** your Cloudflare token and account ID, plus API keys (TMDB and OpenAI first).
+1. **Add GitHub secrets:** your Cloudflare token and account ID, plus your TMDB key (speech-to-text runs free on Cloudflare).
 2. **Deploy the API:** run **Actions → API**.
 3. **Connect the website:** set the `API_URL` variable and run **Actions → Website**.
 4. **Fill the movie and TV index:** run **Actions → Dialogue index**.

@@ -11,6 +11,9 @@
     "ACRCLOUD_HOST": "identify-us-west-2.acrcloud.com"
   },
 
+  // Workers AI: free speech-to-text (Whisper) on Cloudflare's own GPUs.
+  "ai": { "binding": "AI" },
+
   // The dialogue index for movies and TV. The GitHub workflows find or create
   // this database and fill in its id automatically. For local deploys, run
   // `npm run ci:prepare-d1` once after `npx wrangler login`.

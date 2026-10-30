@@ -15,7 +15,7 @@ Everything runs on GitHub Actions. You only add secrets in GitHub, at **Settings
    | Secret | Where to get it | Turns on |
    |---|---|---|
    | `TMDB_API_KEY` | themoviedb.org → Settings → API (either the API Key or the Read Access Token) | Movie and show details |
-   | `OPENAI_API_KEY` | platform.openai.com → API keys | Speech-to-text |
+   | `OPENAI_API_KEY` | platform.openai.com → API keys (optional, paid) | Backup speech-to-text. Not needed: speech-to-text runs free on Cloudflare Workers AI |
    | `ACRCLOUD_ACCESS_KEY`, `ACRCLOUD_ACCESS_SECRET` | ACRCloud console → Audio & Video Recognition project | Songs and ads |
    | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` | console.anthropic.com; model id from docs.claude.com/en/docs/about-claude/models | Best guess |
    | `TURNSTILE_SECRET` | Cloudflare → Turnstile | Bot check (optional) |
@@ -39,7 +39,7 @@ npm run dev                       # http://localhost:8787
 | Step | Finds | Service |
 |---|---|---|
 | 1. Audio fingerprint | Songs, commercials | ACRCloud (songs from its catalog; ads from your own uploaded ad library) |
-| 2. Speech-to-text | Feeds steps 3–5 | OpenAI transcription |
+| 2. Speech-to-text | Feeds steps 3–5 | Cloudflare Workers AI (Whisper, free tier about 200 audio minutes a day); OpenAI as an optional backup |
 | 3. Dialogue match | Movies, TV series | The D1 dialogue index, then TMDB for details and where-to-watch |
 | 4. Transcript match | Podcasts | TODO: Podcast Index transcripts (`src/providers/podcasts.ts`) |
 | 5. AI best guess | Anything else | Claude, labelled "Best guess" |

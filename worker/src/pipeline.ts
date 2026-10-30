@@ -57,7 +57,7 @@ export async function runPipeline(ctx: ClipContext): Promise<IdentifyResponse> {
 export function providerStatus(env: Env) {
   return {
     ...Object.fromEntries(MATCHERS.map((p) => [p.name, p.enabled(env)])),
-    transcribe: transcribe.enabled(env),
+    transcribe: transcribe.engine(env),
   };
 }
 
