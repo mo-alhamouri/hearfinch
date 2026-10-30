@@ -14,6 +14,8 @@ const db = openDb();
 db.exec(`
   DROP TABLE IF EXISTS remote_titles;
   CREATE TABLE remote_titles (id INTEGER PRIMARY KEY, sources INTEGER NOT NULL);
+  DROP TABLE IF EXISTS remote_ingested;
+  CREATE TABLE remote_ingested (source_key TEXT PRIMARY KEY);
 `);
 
 const titles = d1Query<RemoteTitle>('SELECT id, tmdb_id, media_type, imdb_id, title, year, source, sources FROM titles');
@@ -24,13 +26,17 @@ const insertTitle = db.prepare(
 );
 const insertRemote = db.prepare('INSERT INTO remote_titles (id, sources) VALUES (?, ?)');
 const insertKey = db.prepare('INSERT OR IGNORE INTO ingested (source_key) VALUES (?)');
+const insertRemoteKey = db.prepare('INSERT OR IGNORE INTO remote_ingested (source_key) VALUES (?)');
 
 db.exec('BEGIN');
 for (const t of titles) {
   insertTitle.run(t.id, t.tmdb_id, t.media_type, t.imdb_id, t.title, t.year, t.source, t.sources);
   insertRemote.run(t.id, t.sources);
 }
-for (const k of keys) insertKey.run(k.source_key);
+for (const k of keys) {
+  insertKey.run(k.source_key);
+  insertRemoteKey.run(k.source_key);
+}
 db.exec('COMMIT');
 
 console.log(`Pulled ${titles.length} titles and ${keys.length} indexed files from D1.`, stats());

@@ -24,11 +24,13 @@ export interface ListedTitle {
   mediaType: 'movie' | 'tv';
   title: string;
   year: number | null;
+  /** Original language code, e.g. "en". Only set by listTitles. */
+  language?: string;
 }
 
 /** One page (20 titles) of a TMDB list such as popular or top_rated. */
 export async function listTitles(apiKey: string, mediaType: 'movie' | 'tv', list: 'popular' | 'top_rated', page: number): Promise<ListedTitle[]> {
-  const r = await get<{ results: { id: number; title?: string; name?: string; release_date?: string; first_air_date?: string }[] }>(
+  const r = await get<{ results: { id: number; title?: string; name?: string; release_date?: string; first_air_date?: string; original_language?: string }[] }>(
     apiKey,
     `/${mediaType}/${list}?language=en-US&page=${page}`,
   );
@@ -37,6 +39,7 @@ export async function listTitles(apiKey: string, mediaType: 'movie' | 'tv', list
     mediaType,
     title: t.title ?? t.name ?? 'Untitled',
     year: Number((t.release_date ?? t.first_air_date ?? '').slice(0, 4)) || null,
+    language: t.original_language,
   }));
 }
 

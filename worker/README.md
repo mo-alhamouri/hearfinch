@@ -60,7 +60,9 @@ A match below 55% confidence is dropped and the next step runs.
 2. Add the secrets `OPENSUBTITLES_API_KEY`, `OPENSUBTITLES_USERNAME` and `OPENSUBTITLES_PASSWORD`.
 3. Go to **Actions → Dialogue index → Run workflow**, then pick movies or shows, a TMDB list and how many pages of 20 titles to add.
 
-Each run adds only what's new and stops cleanly at OpenSubtitles' daily download limit, so run it again on another day to keep growing the index. The subtitle text only goes into your Cloudflare database, never into the repository. TV episodes are filed under their series, so a match can only ever say which show it is.
+Each run adds only what's new and stops cleanly at OpenSubtitles' daily download limit, so run it again on another day to keep growing the index.
+
+The workflow also runs by itself every day, adding English-language TV shows (one episode each, from TMDB's popular and top-rated lists) until the index holds 1,000 shows. On the free OpenSubtitles plan that's about 20 shows a day; change `DAILY_SHOWS_TARGET` in `.github/workflows/dialogue-index.yml` to aim higher, or disable the workflow to stop it. Shows without English subtitles are remembered and not searched again. The subtitle text only goes into your Cloudflare database, never into the repository. TV episodes are filed under their series, so a match can only ever say which show it is.
 
 ### From your computer (bulk, or the OPUS corpus)
 

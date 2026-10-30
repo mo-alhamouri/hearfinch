@@ -54,6 +54,9 @@ export function addChunks(titleId: number, chunks: string[], sourceKey: string) 
   }
 }
 
+/** Records a key without any dialogue, e.g. a title with no English subtitles, so later runs skip it. */
+export const markIngested = (key: string) => openDb().prepare('INSERT OR IGNORE INTO ingested (source_key) VALUES (?)').run(key);
+
 export const wasIngested = (key: string) => Boolean(openDb().prepare('SELECT 1 FROM ingested WHERE source_key = ?').get(key));
 
 export function titleSourceCount(mediaType: MediaType, tmdbId: number): number {

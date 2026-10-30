@@ -80,7 +80,15 @@ writeBatches(
 const chunks = db.prepare('SELECT text, title_id FROM chunks').all() as { text: string; title_id: number }[];
 writeBatches('chunks', chunks.map((c) => `(${q(c.text)}, ${c.title_id})`), 'INSERT INTO chunks (text, title_id) VALUES');
 
-const keys = db.prepare('SELECT source_key FROM ingested').all() as { source_key: string }[];
+// In append mode, only the keys D1 doesn't have yet.
+const hasRemoteKeys = append && db.prepare("SELECT 1 FROM sqlite_master WHERE name = 'remote_ingested'").get();
+const keys = db
+  .prepare(
+    hasRemoteKeys
+      ? 'SELECT source_key FROM ingested WHERE source_key NOT IN (SELECT source_key FROM remote_ingested)'
+      : 'SELECT source_key FROM ingested',
+  )
+  .all() as { source_key: string }[];
 writeBatches('ingested', keys.map((k) => `(${q(k.source_key)})`), 'INSERT OR IGNORE INTO ingested (source_key) VALUES');
 
 const files = readdirSync(OUT).sort();
