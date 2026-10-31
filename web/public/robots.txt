@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://mo-alhamouri.github.io/hearfinch/sitemap.xml

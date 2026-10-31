@@ -3,6 +3,8 @@
 # Optional repository variables (Settings → Secrets and variables → Actions → Variables):
 #   API_URL             e.g. https://hearfinch-api.<your-subdomain>.workers.dev   (empty = demo mode)
 #   TURNSTILE_SITE_KEY  Cloudflare Turnstile site key                              (empty = off)
+#   GOOGLE_SITE_VERIFICATION  content value of Search Console's HTML tag           (empty = off)
+#   CF_ANALYTICS_TOKEN  Cloudflare Web Analytics site token                        (empty = off)
 name: Website
 
 on:
@@ -43,6 +45,8 @@ jobs:
         env:
           VITE_API_URL: ${{ vars.API_URL }}
           VITE_TURNSTILE_SITE_KEY: ${{ vars.TURNSTILE_SITE_KEY }}
+          VITE_GOOGLE_SITE_VERIFICATION: ${{ vars.GOOGLE_SITE_VERIFICATION }}
+          VITE_CF_ANALYTICS_TOKEN: ${{ vars.CF_ANALYTICS_TOKEN }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
