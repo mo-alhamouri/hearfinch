@@ -2,10 +2,12 @@
 # Run it from Actions → Dialogue index → Run workflow. Safe to repeat: titles
 # already in the index are skipped, and it stops cleanly at the daily download limit.
 #
-# It also runs by itself once a day, adding TV shows (one episode each, English-language
-# shows only) until the index holds DAILY_SHOWS_TARGET shows. On the free OpenSubtitles
-# plan that's roughly 20 new shows a day. To change the target, edit DAILY_SHOWS_TARGET;
-# to stop the daily runs, use "Disable workflow" on the Actions page.
+# It also runs by itself once a day, adding movies and TV shows in turn (one episode per
+# show, English-language titles only) until the index holds DAILY_TARGET of each. On the
+# free OpenSubtitles plan that's roughly 20 new titles a day, split between the two.
+# TMDB's lists stop at 500 pages (10,000 titles per list), so 10,000 is about as far as
+# the lists go. To change the target, edit DAILY_TARGET; to stop the daily runs, use
+# "Disable workflow" on the Actions page.
 #
 # Needs these repository secrets (Settings → Secrets and variables → Actions):
 #   CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID, TMDB_API_KEY,
@@ -44,7 +46,7 @@ on:
         default: '0'
 
 env:
-  DAILY_SHOWS_TARGET: '1000'
+  DAILY_TARGET: '10000'
 
 concurrency:
   group: dialogue-index
@@ -91,12 +93,12 @@ jobs:
       - name: Download and index subtitles
         run: >
           npm run ci:index:opensubtitles --
-          --type "${{ inputs.type || 'tv' }}"
+          --type "${{ inputs.type || 'both' }}"
           --list "${{ inputs.list || 'both' }}"
-          --pages "${{ inputs.pages || '60' }}"
+          --pages "${{ inputs.pages || '500' }}"
           --start-page "${{ inputs.start_page || '1' }}"
           --episodes "${{ inputs.episodes || '1' }}"
-          --until "${{ inputs.until || env.DAILY_SHOWS_TARGET }}"
+          --until "${{ inputs.until || env.DAILY_TARGET }}"
       - name: Add the new titles to Cloudflare
         run: npm run d1:push -- --append
       - name: Summary

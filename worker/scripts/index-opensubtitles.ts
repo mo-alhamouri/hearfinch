@@ -6,9 +6,10 @@
  *   npm run index:opensubtitles -- --type tv --list top_rated --pages 2 --episodes 4
  *   npm run index:opensubtitles -- --type tv --list both --pages 100 --episodes 1 --until 1000
  *
+ * --type both     alternates movies and shows, one title each in turn
  * --list both     walks the popular and top-rated lists
  * --start-page N  begins at page N instead of 1
- * --until N       stops once the index holds N shows (or movies, for --type movie)
+ * --until N       stops each type once the index holds N of it (N shows, N movies)
  * --all-languages includes titles not originally in English (skipped by default,
  *                 since clips are transcribed as English)
  *
@@ -104,27 +105,51 @@ async function indexTitle(t: ListedTitle) {
 }
 
 await login();
-try {
-  nextType: for (const type of types) {
-    if (until && indexedCount(type) >= until) {
-      console.log(`Already holds ${indexedCount(type)} ${type === 'movie' ? 'movies' : 'shows'} (target ${until}).`);
-      continue;
+
+/** Every listed title of one type, walking each list page by page. */
+async function* titlesOf(type: 'movie' | 'tv'): AsyncGenerator<ListedTitle> {
+  for (const list of lists) {
+    for (let page = startPage; page < startPage + pages; page++) {
+      const listed = await listTitles(TMDB!, type, list, page).catch(() => [] as ListedTitle[]);
+      if (!listed.length) break; // past the end of the list
+      yield* listed;
     }
-    for (const list of lists) {
-      for (let page = startPage; page < startPage + pages; page++) {
-        const listed = await listTitles(TMDB, type, list, page);
-        if (!listed.length) break; // past the end of the list
-        for (const t of listed) {
-          const status = await indexTitle(t).catch((e: unknown) => {
-            if (e instanceof QuotaExceeded) throw e;
-            return `error: ${e instanceof Error ? e.message : e}`;
-          });
-          console.log(`${type === 'movie' ? 'Movie ' : 'Series'}  ${t.title} (${t.year ?? '?'})  ${status}`);
-          if (until && indexedCount(type) >= until) {
-            console.log(`\nReached the target of ${until} ${type === 'movie' ? 'movies' : 'shows'}.`);
-            continue nextType;
-          }
-        }
+  }
+}
+
+const label = (type: 'movie' | 'tv') => (type === 'movie' ? 'movies' : 'shows');
+// With --type both, take one title of each type in turn, so the daily download
+// quota is shared between movies and shows instead of going all to one.
+const active = types
+  .filter((type) => {
+    if (until && indexedCount(type) >= until) {
+      console.log(`Already holds ${indexedCount(type)} ${label(type)} (target ${until}).`);
+      return false;
+    }
+    return true;
+  })
+  .map((type) => ({ type, titles: titlesOf(type) }));
+
+try {
+  while (active.length) {
+    for (const entry of [...active]) {
+      const { type, titles } = entry;
+      const next = await titles.next();
+      const done = () => active.splice(active.indexOf(entry), 1);
+      if (next.done) {
+        console.log(`\nNo more ${label(type)} on the TMDB lists.`);
+        done();
+        continue;
+      }
+      const t = next.value;
+      const status = await indexTitle(t).catch((e: unknown) => {
+        if (e instanceof QuotaExceeded) throw e;
+        return `error: ${e instanceof Error ? e.message : e}`;
+      });
+      console.log(`${type === 'movie' ? 'Movie ' : 'Series'}  ${t.title} (${t.year ?? '?'})  ${status}`);
+      if (until && indexedCount(type) >= until) {
+        console.log(`\nReached the target of ${until} ${label(type)}.`);
+        done();
       }
     }
   }

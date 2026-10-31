@@ -18,7 +18,7 @@ hearfinch/
 | Website | https://mo-alhamouri.github.io/hearfinch/ (connected to the live API) |
 | API | https://hearfinch-api.moh-alhamouri.workers.dev ([health](https://hearfinch-api.moh-alhamouri.workers.dev/health)) |
 | Speech-to-text | Cloudflare Workers AI (Whisper large v3 turbo), free |
-| Dialogue index | 38 movies, 0 shows. A daily run adds about 20 English-language shows until there are 1,000 |
+| Dialogue index | Growing daily: about 20 English-language titles a day, movies and shows in turn, up to 10,000 of each |
 | Song and ad fingerprinting | Off (no ACRCloud keys yet) |
 | AI best guess | Off (no Anthropic key yet) |
 | Podcasts | Not built yet |
@@ -36,6 +36,8 @@ Testing tip: turn on **Settings → Show what Hearfinch heard** to see the trans
 - **Testing mode.** "Show what Hearfinch heard" displays the transcript, candidates and pipeline steps.
 - **Free speech-to-text.** OpenAI had no credit (429 errors), so transcription moved to Cloudflare Workers AI. OpenAI stays as a fallback only.
 - **1,000 shows.** The Dialogue index workflow now runs daily. It adds one episode per English-language show from TMDB's popular and top-rated lists, stops at 1,000 shows, and remembers shows with no English subtitles. New run inputs: list "both", start page and a target count.
+- **SEO and analytics.** Canonical, Open Graph and structured-data tags, a sitemap, Google Search Console verification and Cloudflare Web Analytics (repo variables `GOOGLE_SITE_VERIFICATION`, `CF_ANALYTICS_TOKEN`).
+- **10,000 movies and shows.** The daily run now alternates movies and shows (one title each in turn) and aims for 10,000 of each, about as deep as TMDB's lists go.
 
 ## Put it online
 
@@ -76,7 +78,7 @@ npm --prefix worker run typecheck
 ## What's next
 
 1. **Test identification** with clips from the indexed movies, with testing mode on, and tune the 55% bar and default clip length.
-2. **Let the index grow:** about 50 days to reach 1,000 shows on the free OpenSubtitles plan (the Light plan, $20 for one month, would do it in a day). If the count stops growing, check that the Dialogue index workflow is still enabled: GitHub pauses scheduled runs after 60 days without commits.
+2. **Let the index grow:** about 20 titles a day on the free OpenSubtitles plan, so years to reach 10,000 of each; a paid plan speeds this up a lot. Watch the D1 database size (500 MB on Cloudflare's free plan, 10 GB on paid). If the count stops growing, check that the Dialogue index workflow is still enabled: GitHub pauses scheduled runs after 60 days without commits.
 3. **Songs and ads:** add the ACRCloud keys. For ads, upload commercial audio to an ACRCloud custom bucket with `brand`, `campaign` and `url` fields.
 4. **AI best guess:** add the Anthropic key.
 5. **Podcasts:** ingest Podcast Index transcripts into the same index (`worker/src/providers/podcasts.ts`).
